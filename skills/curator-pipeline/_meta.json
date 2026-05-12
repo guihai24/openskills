@@ -1,0 +1,21 @@
+{
+  "name": "curator-pipeline",
+  "version": "0.1.0",
+  "type": "pipeline",
+  "author": "huaguihai",
+  "homepage": "https://github.com/huaguihai/xhs-shop",
+  "description": "策展型小红书虚拟产品 pipeline — YouTube/文章 → 精品 HTML PPT",
+  "required_binaries": [
+    { "name": "python3", "min_version": "3.10.0", "reason": "scripts/html-diff.py" },
+    { "name": "node", "min_version": "18.0.0", "reason": "ima-skill ima_api.cjs" }
+  ],
+  "external_skills_used": [
+    "guizang-ppt-skill",
+    "ima-skill",
+    "marker-writer",
+    "khazix-writer",
+    "grok-image",
+    "smart-fetch",
+    "web-access"
+  ]
+}
