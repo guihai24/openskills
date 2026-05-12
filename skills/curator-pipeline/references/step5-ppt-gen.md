@@ -3,6 +3,18 @@
 > 目标：把 Step 4 通过的策展终稿，交给 guizang-ppt-skill 风格生成单文件 HTML PPT。
 > **失败要点**：把它当外部进程调；忘了 guizang 是 prompt skill（Claude 自己按指令写 HTML）。
 
+## ⚠️ 重要：guizang-ppt-skill 是路径引用型 skill
+
+**guizang-ppt-skill 已安装** 在 `/root/openskills/skills/guizang-ppt-skill/`。
+
+**不要重新安装**。**不要去 Claude Code 的 `Available skills` 索引里找它**——它不在那个列表里是正常的（它是路径引用型 skill，不是 Claude Code 注册型 skill）。
+
+**调用方式**：用 `Read` 工具读 `/root/openskills/skills/guizang-ppt-skill/SKILL.md`，按里面的 7 问澄清表 + layouts + themes 自己写 HTML。
+
+如果 Step 0 `verify-deps.sh` 这一项是 ❌，先告诉用户具体什么文件缺失，再让用户决定是否重装；**绝不要自己 git clone 或 cp**。
+
+---
+
 ## 1. 准备 brief
 
 读 `products/<slug>/curation.md`（终稿）+ Step 2 蓝图信息。生成 guizang 的 brief：

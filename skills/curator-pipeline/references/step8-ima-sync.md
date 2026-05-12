@@ -3,6 +3,18 @@
 > 目标：把交付物同步到 IMA 知识库；把这次的"AI 初印象 vs 用户纠偏"沉淀到 memory。
 > **失败要点**：IMA 同步失败时阻塞交付；忘记反哺 memory。
 
+## ⚠️ 重要：ima-skill 是路径引用型 skill
+
+**ima-skill 已安装** 在 `/root/openskills/skills/ima-skill/`。凭证在 `~/.config/ima/{client_id,api_key}`。
+
+**不要重新安装**。**不要去 Claude Code 的 `Available skills` 索引里找它**——它不在那个列表里是正常的。
+
+**调用方式**：通过 Bash 执行 `node /root/openskills/skills/ima-skill/ima_api.cjs <apiPath> <body_json> <options_json>`。详细 API 见 `/root/openskills/skills/ima-skill/knowledge-base/SKILL.md`。
+
+如果 Step 0 `verify-deps.sh` 这一项是 ❌，先告诉用户具体什么文件 / 凭证缺失；**绝不要自己重装**。
+
+---
+
 ## 1. IMA 同步
 
 ### 1.1 选目标知识库

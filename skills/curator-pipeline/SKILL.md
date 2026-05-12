@@ -39,6 +39,26 @@ metadata:
 **单文件 HTML**（含 WebGL 背景 / Lucide 图标 / Motion 动效，由 guizang-ppt-skill 风格生成）。
 电脑 / 手机 / 平板双击打开即可。**不输出 .pptx**——详见 `/root/xhs-shop/docs/notes/guizang-interface.md`。
 
+---
+
+## 外部依赖速查表（所有依赖都**已装好**，不要重新安装！）
+
+| 依赖 | 类型 | 路径 / 调用方式 | 状态 |
+|------|------|---------------|------|
+| `guizang-ppt-skill` | **路径引用**（不在 Claude Code 索引里） | 读 `/root/openskills/skills/guizang-ppt-skill/SKILL.md` 按指令写 HTML | ✅ |
+| `ima-skill` | **路径引用** | 调 `node /root/openskills/skills/ima-skill/ima_api.cjs <api> <body>` | ✅，凭证在 `~/.config/ima/` |
+| `smart-fetch` | **Claude Code skill** | 用 Skill tool 按名调用 | 在 session start `Available skills` 里 |
+| `marker-writer` / `khazix-writer` | **Claude Code skill** | 用 Skill tool（二选一） | 同上 |
+| `grok-image` | **Claude Code skill** | 用 Skill tool | 同上 |
+
+**关键区分**：
+- "**路径引用型**"= 源码在 `/root/openskills/skills/`，**不会出现在 Claude Code 的 `Available skills` 列表里**。这是正常的。直接 `Read` 它的 SKILL.md，按内容执行。**不要因为索引里找不到就尝试重装**。
+- "**Claude Code skill**" = 通过 Skill tool 按名字调用。
+
+**Step 0 强制自查**（见下面），跑一次就知道什么齐什么缺，不要靠记忆判断。
+
+---
+
 ## 开始前：确认上下文
 
 让用户告诉你：
@@ -57,7 +77,24 @@ metadata:
 
 ---
 
-## Step 0：读规范（每次都重读，不要凭记忆）
+## Step 0：依赖自查 + 读规范（每次都跑，不要凭记忆）
+
+### 0.1 依赖自查（一行命令）
+
+```bash
+bash /root/xhs-shop/scripts/verify-deps.sh
+```
+
+输出里**任何 ❌ 都要解决再继续**。`⚠️` 标的 Claude Code skill 在后续步骤实际调用时确认。
+
+**如果发现 ❌**：根据缺什么决定——
+- 缺 `/root/openskills/skills/xxx/SKILL.md` → 看 `/root/xhs-shop/docs/notes/skill-location.md`，确认是否真的没装；**不要直接重装外部 skill**，先告诉用户具体缺什么
+- 缺凭证 → 看 `/root/xhs-shop/docs/notes/skill-location.md` 找出处
+- 缺 memory / templates 文件 → 这是项目级 bug，告诉用户
+
+### 0.2 读规范
+
+每次都重新读，不要凭记忆：
 
 1. `/root/xhs-shop/memory/CURATOR_STYLE.md` — 唯一质量规则源（必读全文）
 2. `/root/xhs-shop/memory/AUDIENCE_PROFILES.md` — 历史受众画像
@@ -67,7 +104,7 @@ metadata:
    ls -t /root/xhs-shop/products/ | head -3
    ```
 
-读完声明："已读完上述 N 个文件，可开始 Step 1。"
+读完声明："依赖自查 PASS，已读完上述 N 个文件，可开始 Step 1。"
 
 ---
 
