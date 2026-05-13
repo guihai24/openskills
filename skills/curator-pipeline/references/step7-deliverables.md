@@ -52,25 +52,41 @@
 
 ## 2. 封面图（调 grok-image）
 
-### 2.1 写 prompt
+### 2.1 写 prompt（2026-05-13 强化格式要求）
 
-基于 Step 2 风格基调 + PPT 主标题 + Step 5 选定的主题色，写 grok-image prompt。例：
+基于 Step 2 风格基调 + PPT 主标题 + Step 5 选定的主题色，写 grok-image prompt。
+
+**格式硬约束**（写进 prompt 里，必须明确指定）：
+- **比例 3:4**（小红书封面竖图标准）
+- **分辨率 1080×1440 px**
+- **格式 PNG**（不要 SVG／WebP——小红书上传不接 SVG，老 App 不一定接 WebP）
+- 留 30% 留白避免文字过密
+- 去掉所有 emoji 字符
+
+例 prompt：
 
 ```
-小红书封面图，3:4 竖图，主标题"<title>"放大居中，副标题"<subtitle>"放小，
-风格 <swiss-helvetica 极简 / 杂志感衬线>，配色 <从 Step 5 主题色继承>，
-留 30% 留白避免文字过密，去掉所有 emoji 字符。
+小红书封面图，**PNG 格式，1080×1440 px，3:4 竖图比例**，
+主标题"<title>"放大居中，副标题"<subtitle>"放小，
+风格 <swiss-helvetica 极简 / 杂志感衬线>，
+配色 <从 Step 5 主题色继承>，留 30% 留白，不要 emoji。
 ```
+
+教训：youtube-xhs-curation 出了 cover.svg，小红书上传栏不一定接受。必须显式锁 PNG + 像素尺寸。
 
 ### 2.2 调用 grok-image
 
 调 grok-image 生成 1-3 张候选，让用户选 1 张。
 
-输出：`products/<slug>/cover.png`
+输出：`products/<slug>/cover.png`（**确认扩展名是 .png**）
 
 ### 2.3 失败处理
 
 grok-image 失败 → 不阻塞交付。在 meta.json 标 `deliverables.cover = null`，提示"封面待补"。
+
+如果 grok-image 返回的是 SVG/WebP 而非 PNG：
+- 用 ImageMagick 或 `pillow` 转 PNG：`convert cover.svg cover.png` / `python3 -c "from PIL import Image; Image.open('cover.webp').save('cover.png','PNG')"`
+- 转后 meta.json 标 `cover_format_converted: true`
 
 ## 3. 注入免责声明
 

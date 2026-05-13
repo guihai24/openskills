@@ -12,13 +12,37 @@
 ## 1. 解析输入
 
 输入有 3 种来源：
-- **URL（YouTube/文章）**：调用 smart-fetch / web-access 抓取
+- **YouTube URL**（含 `youtube.com/watch`、`youtu.be/`、`/embed/`、`/shorts/`）→ 调 `scripts/fetch-youtube-transcript.py`
+- **文章 / 博客 URL**（Medium / 知乎 / SubStack / 公众号等）→ 调 smart-fetch（走 Jina 路径）
 - **粘贴文本**：直接用
 - **混合**：URL + 粘贴文本（用户补充）
 
-**抓取失败处理**：单次失败立即报错+给"手动粘文本"指引，不重试。
+### 1.1 YouTube URL 抓取（2026-05-13 新增）
 
-**素材质量检查**：
+```bash
+python3 /root/xhs-shop/scripts/fetch-youtube-transcript.py "<youtube_url>" \
+  > /root/xhs-shop/products/<slug>/source/raw.md
+```
+
+预期：stdout 写出 markdown 逐字稿；exit 0 = OK。
+
+失败处理：
+- exit 1（无字幕 / 字幕被禁用）→ 报错 + 指引用户"该视频没字幕，请手动粘逐字稿作为 fallback"
+- exit 2（URL 格式错）→ 让用户确认 URL
+- exit 3（网络错）→ 检查 `HTTP_PROXY/HTTPS_PROXY`（用户说有代理；youtube-transcript-api 走 requests，自动 honor 代理）
+
+**不重试**——单次失败立即报错。
+
+### 1.2 文章 URL 抓取
+
+调 smart-fetch（Claude Code skill），把抓到的 markdown 存到 `products/<slug>/source/raw.md`。
+
+### 1.3 粘贴文本
+
+直接保存到 `products/<slug>/source/raw.md`。
+
+### 1.4 素材质量检查
+
 - 字数 < 1500 → 触发警示
 - 营销话术密度过高（无具体案例、无数据、无步骤） → 触发警示
 - 触发警示后 STOP，不进入 Step 2。让用户决定换素材或补料。
@@ -45,11 +69,51 @@
    例: "按 J 人出行节奏（4-5 天）做模块化攻略，每模块带可复制清单"
 ```
 
+## 3.5 AI 自挑刺（2026-05-13 新增 — 必产出）
+
+读完素材 + 给完初印象后，AI **必须主动列出 3 个"我最可能读偏的角度"**，给自己挑刺：
+
+```
+🪞 AI 自挑刺（防止零纠偏陷阱）
+─────────────────────
+可能偏 1（受众层面）: "我假设受众是 X，但其实可能是 Y"
+   例: "我假设是 J 人攻略派，但她也可能是 I 人临时起意派——需要更轻量的指南"
+可能偏 2（痛点层面）: "我抓的核心痛点是 X，但其实可能是 Z"
+   例: "我抓'怕踩坑'，但更深层可能是'怕被同伴觉得没准备好'"
+可能偏 3（切入角度层面）: "我建议的切入角度是 X，但其实可能 Y 更好"
+   例: "我建议'模块化攻略'，但'反矫情吐槽'风格在小红书更易爆"
+```
+
+教训：youtube-xhs-curation 跑产时 AI 命中率 100%、用户零纠偏——但这不是 AI 真的对了，而是用户没被"被动确认"模式逼出真实意见。强制 AI 先给自己挑刺，用户至少能在挑刺基础上找方向。
+
 ## 4. 与用户确认
 
-明确问："这份初印象是否符合你的预期？需要纠偏哪一项？"
+明确问："这份初印象 + 3 个自挑刺，是否符合你的预期？纠偏哪一项？或者你看到的偏离是别的？"
 
-**记录用户纠偏**：把"AI 初印象" vs "用户纠偏后" 的差异写入 `meta.json.audience_ai_first_impression` 和 `meta.json.audience`，并在 Step 8 沉淀到 `memory/AUDIENCE_PROFILES.md`。
+**记录用户回应**到 meta.json：
+
+```json
+{
+  "ai_first_impression": {
+    "audience": "<v0 原文>",
+    "core_conflict": "...",
+    "pain_points": [...],
+    "angle": "..."
+  },
+  "ai_self_critique": [
+    "<可能偏 1 原文>",
+    "<可能偏 2 原文>",
+    "<可能偏 3 原文>"
+  ],
+  "audience_correction_log": [
+    { "field": "audience", "from": "...", "to": "...", "reason": "..." }
+  ],
+  "audience": "<final 用户敲定版本>",
+  "audience_corrected_by_user": true | false
+}
+```
+
+`audience_corrected_by_user = true` **当且仅当** `audience_correction_log` 非空。仅"用户回了一个嗯"不算纠偏。Step 8 会把这套字段沉淀到 `memory/AUDIENCE_PROFILES.md`。
 
 ## 5. 敲定 slug
 
