@@ -17,21 +17,31 @@
 - **粘贴文本**：直接用
 - **混合**：URL + 粘贴文本（用户补充）
 
-### 1.1 YouTube URL 抓取（2026-05-13 新增）
+### 1.1 YouTube URL 抓取（2026-05-13 新增，三源 fallback 链）
 
 ```bash
+# Load API keys from .env (if present)
+set -a
+source /root/xhs-shop/.env 2>/dev/null
+set +a
+
 python3 /root/xhs-shop/scripts/fetch-youtube-transcript.py "<youtube_url>" \
   > /root/xhs-shop/products/<slug>/source/raw.md
 ```
 
-预期：stdout 写出 markdown 逐字稿；exit 0 = OK。
+**抓取顺序**（首个成功即用）：
+1. SearchAPI.io（`SEARCHAPI_API_KEY` env）— 主源
+2. Supadata.ai（`SUPADATA_API_KEY` env）— 备源
+3. youtube-transcript-api 直连 — 云 IP 通常被 YouTube 封
 
-失败处理：
-- exit 1（无字幕 / 字幕被禁用）→ 报错 + 指引用户"该视频没字幕，请手动粘逐字稿作为 fallback"
+配置见 `/root/xhs-shop/docs/notes/youtube-fetcher-setup.md`。
+
+**失败处理**：
+- exit 1（所有源失败 / 视频无字幕）→ stderr 会给手动 fallback 指引（https://youtubetotranscript.com），让用户复制后保存到 raw.md，**不要**自动重试不同 URL
 - exit 2（URL 格式错）→ 让用户确认 URL
-- exit 3（网络错）→ 检查 `HTTP_PROXY/HTTPS_PROXY`（用户说有代理；youtube-transcript-api 走 requests，自动 honor 代理）
+- exit 3（脚本/环境故障）→ 看具体 error message
 
-**不重试**——单次失败立即报错。
+**记录抓取来源**：把 stdout 顶部的 `<!-- source: xxx -->` 注释 + meta.json `transcript_source` 字段都记下（用于配额追踪）。
 
 ### 1.2 文章 URL 抓取
 
