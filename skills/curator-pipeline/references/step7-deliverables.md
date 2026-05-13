@@ -14,17 +14,36 @@
 
 特别：在文案的"价格锚定"部分**必须**写明"**交付格式：单文件 HTML（电脑/手机/平板双击打开即可，含动效）**"，避免买家以为是 .pptx。
 
-### 1.2 调用 writer
+### 1.2 标题 lint（2026-05-13 新增，红线级）
+
+调用 writer 之前先列 `meta.json.quality_check.fact_check_open_items`，**禁止把这些项里涉及的案例做 title hook**。
+
+示例错误（youtube-xhs-curation 教训）：
+- fact_check_open_items: ["Thewizardliz 销量数据为单一来源"]
+- ❌ 标题: "120 天 8000 元，她只做对了选油管博主"（用了 Thewizardliz 这个孤证）
+- ✅ 正确做法: 改用已多源验证的天花板案例做 hook（如"参考答案阅览室 149/年 卖 3681 份"）
+
+实操：让 writer 出 5 个候选标题时，明确告知"禁止用 <slug> 的 ⚠️ open_items 涉及的案例做主 hook"。
+
+### 1.3 调用 writer
 
 显式调用 marker-writer 或 khazix-writer（让用户选偏好的写手）。
 
 期待输出：
-- 5 个标题变体 + 推荐 + 4U 评分理由
+- 5 个标题变体 + 推荐 + 4U 评分理由（**不允许用孤证案例做主 hook**）
 - 1 篇正文（按 brief 要求的 7 段结构）
 
 写入 `products/<slug>/xhs-post.md`。
 
-### 1.3 在 TITLE_LESSONS.md 记录
+### 1.4 案例呈现顺序（2026-05-13 新增）
+
+如果产品里有多个真实店铺案例：
+
+- **deck 内排序**：天花板 → 中段 → 入门（强→弱）。让买家先看到上限激起欲望，再看到入口降低门槛。
+- **文案 hook**：必须从**最强、且 fact-check 通过**的那个案例取数。
+- **教训**：youtube-xhs-curation 反过来排（弱→强）+ 标题用最弱案例 → 综合错误，必须改正。
+
+### 1.5 在 TITLE_LESSONS.md 记录
 
 `/root/xhs-shop/memory/TITLE_LESSONS.md` 追加一行：
 | 日期 | slug | AI 推荐 | 候选 1-4 | 用户选 | 选择原因 |

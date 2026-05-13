@@ -3,21 +3,39 @@
 > 目标：内容 diff（机械层）+ AI 味（抽样层）+ 付费视角（最终层）。
 > **失败要点**：只做机械 diff 就放过；忽视配图/排版问题。
 
-## 1. 机械层 — 内容 diff
+## 1. 机械层 — 字数 + 核心概念覆盖率（2026-05-13 更新）
+
+### 1.1 字数硬卡
 
 ```bash
-python3 /root/xhs-shop/scripts/html-diff.py \
-  /root/xhs-shop/products/<slug>/deck.html \
-  /root/xhs-shop/products/<slug>/curation.md \
-  > /root/xhs-shop/products/<slug>/source/diff-report.json
+python3 /root/xhs-shop/scripts/count-cjk.py \
+  /root/xhs-shop/products/<slug>/ppt/index.html
 ```
 
-读 `diff-report.json`：
-- `status: clean` → 通过此层
-- `status: minor_drift` → 列出 missing 项给用户决定
-- `status: major_drift` → 默认要求回 Step 5 重生成
+- `pass: true`（CJK ≥ 10,000）→ 继续 1.2
+- `pass: false` → 不能交付，回 Step 5 重生 / 回 Step 3 补内容（取决于 curation.md 自身够不够）
 
-注意：HTML 经 guizang 改写后必有少量改写（标题精炼、列表点重组），minor_drift 是正常的；major_drift（≥5 短语漂移）才是预警。
+教训：youtube-xhs-curation deck.html 只有 1,989 CJK，远低于红线 → 必须回 Step 3 把章节做深做透。
+
+### 1.2 核心概念覆盖率（取代 html-diff 机械短语对比）
+
+让 Claude 自己列 Step 2 蓝图里的"核心概念清单"（一般 8-15 个，覆盖 ★ 增值点 + 卖点切片关键词），逐条核对 deck.html 是否呈现。
+
+```
+核心概念覆盖检查表
+─────────────────────
+| # | 概念 | 在 deck 哪一页呈现 | 状态 |
+|---|------|-------------------|------|
+| 1 | 4 维筛选决策表 | P5/P6/P7 | ✅ |
+| 2 | 7 种整理切面菜单 | P10/P11/P12 | ✅ |
+| 3 | 卢曼卡片盒法 | (未呈现) | ❌ 缺核心 |
+| ...  |
+```
+
+- 全 ✅ → 通过此层
+- 任一 ❌ → 报告给用户，决定回 Step 5 补 / 砍此概念 / 接受不呈现（写入 meta.json 备注）
+
+**`html-diff.py` 改为参考使用**：它对策展产品（取精华+重组）会一律报 expected_drift，状态用 `expected_drift` 而非打回 Step 5（见 CURATOR_STYLE.md 警示条款 #7）。如果用户想看 diff 报告作辅助参考，可以跑；但不作为放行/打回依据。
 
 ## 2. AI 味层 — 抽样 3-5 页
 
@@ -33,22 +51,29 @@ python3 /root/xhs-shop/scripts/html-diff.py \
 
 发现 AI 味重 → 标记 `quality_check.ai_taste_check = "needs_polish"`，让用户决定回 Step 5 重生成 / 手动改 HTML / 接受。
 
-## 3. 付费视角层
+## 3. 付费视角层（2026-05-13 强化）
 
-对整份 deck 做一次"买家视角"自问：
+**不要再问抽象的"觉得值吗"。改用"刚花钱模拟"**：
 
 ```
-💰 付费视角自检
-- 我是花 9.9 / 39.9 / 69.9 的买家，看完这份 PPT 觉得"花得值"吗？
-- 哪几页最值（卖点切片）？
-- 哪几页让我觉得"凑数"？
-- 同类竞品的 PPT 比这份更好吗？为什么？
+💰 付费视角自检（强制具体）
+你刚花了 <price> 元（来自 meta.json.pricing_target，3.9-19.9 区间）下单这份 PPT。
+现在打开手机看到第 1 页，请回答：
+1. 第 1 页的标题是否让你立刻明白"这就是我要的东西"？还是要翻 2-3 页才懂？
+2. 翻完前 5 页后，你心里的反应是"赚到了"还是"就这？"
+3. 整份 22 页里，最让你想截图/转发/收藏的是哪一页？为什么？
+4. 整份里，最让你想要求退款的是哪一页？为什么？
+5. 你会推荐给闺蜜/同事吗？理由是什么？
 ```
+
+每个问题必须具体到页码 + 短理由。
 
 结果分类：
-- ✅ `passed` — 通过
-- ⚠️ `borderline` — 让用户决定是否打回
-- ❌ `failed` — 强烈建议打回 Step 5
+- ✅ `passed` — 4/5 个问题答案积极、能指出"最想转发"的页
+- ⚠️ `borderline` — 答得出问题但找不到真正的高光页
+- ❌ `failed` — 一半以上问题答"不知道 / 内容太空 / 凑数"
+
+教训：youtube-xhs-curation 这一层标了 passed 但用户实际感受空——是因为问题太抽象。现在改成"必须指页 + 短理由"，逼 AI 真正模拟买家视角。
 
 ## 4. 写入 meta.json
 

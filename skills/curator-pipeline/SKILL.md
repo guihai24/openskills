@@ -39,6 +39,10 @@ metadata:
 **单文件 HTML**（含 WebGL 背景 / Lucide 图标 / Motion 动效，由 guizang-ppt-skill 风格生成）。
 电脑 / 手机 / 平板双击打开即可。**不输出 .pptx**——详见 `/root/xhs-shop/docs/notes/guizang-interface.md`。
 
+**定价区间**：3.9 - 19.9 元。**篇幅红线：deck.html CJK ≥ 10,000 字**。低价不是降质借口——用 199 元诚意做低价产品（CURATOR_STYLE.md § 💰 定价哲学）。
+
+**HTML 不上传 IMA**：HTML 走 `/root/xhs-shop-deliveries/` GitHub repo 存档；IMA 只同步 .md 三件套到「小红书-虚拟产品**作品库**」（KB `lNswTIkQ8...`）。详见 `/root/xhs-shop/docs/notes/github-deliveries-repo.md`。
+
 ---
 
 ## 外部依赖速查表（所有依赖都**已装好**，不要重新安装！）
