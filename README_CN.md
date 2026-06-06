@@ -3,7 +3,7 @@
 开源 AI Agent 技能集，适用于 [OpenClaw](https://github.com/anthropics/openclaw) 和 Claude Code。
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![Skills](https://img.shields.io/badge/skills-8-green)]()
+[![Skills](https://img.shields.io/badge/skills-9-green)]()
 
 [🇺🇸 English](README.md)
 
@@ -53,6 +53,7 @@ for skill in skills/*/; do cp -r "$skill" ~/.openclaw/skills/; done
 | [smart-fetch](skills/smart-fetch/) | 智能网页抓取路由 — 自动选工具（Jina/WebFetch/curl），零依赖 | 工具 |
 | [grok-image](skills/grok-image/) | AI 图片生成和编辑（Grok Imagine 模型） | 创意 |
 | [auto-approve](skills/auto-approve/) | 分析工具授权日志，自动发现高频模式并加入授权清单 | 效率 |
+| [context-monitor](skills/context-monitor/) | Claude Code 上下文用量状态栏 — 实时百分比、逼近上限变色预警、正确处理 /compact 边界 | 效率 |
 
 ## 安装
 

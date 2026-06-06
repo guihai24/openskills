@@ -3,7 +3,7 @@
 Open-source AI agent skills for [OpenClaw](https://github.com/anthropics/openclaw) and Claude Code.
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![Skills](https://img.shields.io/badge/skills-8-green)]()
+[![Skills](https://img.shields.io/badge/skills-9-green)]()
 
 [🇨🇳 中文版](README_CN.md)
 
@@ -53,6 +53,7 @@ for skill in skills/*/; do cp -r "$skill" ~/.openclaw/skills/; done
 | [smart-fetch](skills/smart-fetch/) | Smart web scraping router — auto-selects the right tool (Jina/WebFetch/curl) for any URL | Utility |
 | [grok-image](skills/grok-image/) | AI image generation and editing using Grok Imagine models | Creative |
 | [auto-approve](skills/auto-approve/) | Analyze tool approval logs, discover high-frequency patterns, add to auto-approve list | Efficiency |
+| [context-monitor](skills/context-monitor/) | Status-line meter for Claude Code context usage — color warnings before overflow, handles /compact correctly | Efficiency |
 
 ## Installation
 
