@@ -1,0 +1,4 @@
+# 第三方安装的 skill（clone / 装来用的，非本仓库开发，不纳入版本管理）
+# 它们的运行时副本在 ~/.claude/skills/ 或 ~/.openclaw/skills/
+skills/guizang-ppt-skill/
+skills/ima-skill/
