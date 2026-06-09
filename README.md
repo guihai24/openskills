@@ -54,6 +54,8 @@ for skill in skills/*/; do cp -r "$skill" ~/.openclaw/skills/; done
 | [grok-image](skills/grok-image/) | AI image generation and editing using Grok Imagine models | Creative |
 | [auto-approve](skills/auto-approve/) | Analyze tool approval logs, discover high-frequency patterns, add to auto-approve list | Efficiency |
 | [context-monitor](skills/context-monitor/) | Status-line meter for Claude Code context usage — color warnings before overflow, handles /compact correctly | Efficiency |
+| [curator-pipeline](skills/curator-pipeline/) | Curation pipeline — turn YouTube transcripts, article URLs, or pasted text into sellable HTML-PPT products | Writing |
+| [handoff](skills/handoff/) | Cross-agent work handoff protocol — factual HANDOFF.md + clean worktree on the way out, reconcile against real git state before picking up | Workflow |
 
 ## Installation
 

@@ -54,6 +54,8 @@ for skill in skills/*/; do cp -r "$skill" ~/.openclaw/skills/; done
 | [grok-image](skills/grok-image/) | AI 图片生成和编辑（Grok Imagine 模型） | 创意 |
 | [auto-approve](skills/auto-approve/) | 分析工具授权日志，自动发现高频模式并加入授权清单 | 效率 |
 | [context-monitor](skills/context-monitor/) | Claude Code 上下文用量状态栏 — 实时百分比、逼近上限变色预警、正确处理 /compact 边界 | 效率 |
+| [curator-pipeline](skills/curator-pipeline/) | 策展流水线 — 把 YouTube 逐字稿、文章 URL 或粘贴文本转成可在小红书销售的 HTML PPT 产品 | 写作 |
+| [handoff](skills/handoff/) | 跨 agent 工作交接协议 — 交出时写实 HANDOFF.md + 留干净工作区，接手时先与 git 真实状态对账再开工 | 工作流 |
 
 ## 安装
 
