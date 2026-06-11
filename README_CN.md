@@ -3,7 +3,7 @@
 开源 AI Agent 技能集，适用于 [OpenClaw](https://github.com/anthropics/openclaw) 和 Claude Code。
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![Skills](https://img.shields.io/badge/skills-9-green)]()
+[![Skills](https://img.shields.io/badge/skills-12-green)]()
 
 [🇺🇸 English](README.md)
 
@@ -56,6 +56,7 @@ for skill in skills/*/; do cp -r "$skill" ~/.openclaw/skills/; done
 | [context-monitor](skills/context-monitor/) | Claude Code 上下文用量状态栏 — 实时百分比、逼近上限变色预警、正确处理 /compact 边界 | 效率 |
 | [curator-pipeline](skills/curator-pipeline/) | 策展流水线 — 把 YouTube 逐字稿、文章 URL 或粘贴文本转成可在小红书销售的 HTML PPT 产品 | 写作 |
 | [handoff](skills/handoff/) | 跨 agent 工作交接协议 — 交出时写实 HANDOFF.md + 留干净工作区，接手时先与 git 真实状态对账再开工 | 工作流 |
+| [agnes-ai](skills/agnes-ai/) | Agnes AI 图片和视频生成 — 文生图/图生图，文/图/多图/关键帧生视频（异步），结果自动下载到本地 | 创意 |
 
 ## 安装
 

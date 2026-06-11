@@ -3,7 +3,7 @@
 Open-source AI agent skills for [OpenClaw](https://github.com/anthropics/openclaw) and Claude Code.
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![Skills](https://img.shields.io/badge/skills-9-green)]()
+[![Skills](https://img.shields.io/badge/skills-12-green)]()
 
 [🇨🇳 中文版](README_CN.md)
 
@@ -56,6 +56,7 @@ for skill in skills/*/; do cp -r "$skill" ~/.openclaw/skills/; done
 | [context-monitor](skills/context-monitor/) | Status-line meter for Claude Code context usage — color warnings before overflow, handles /compact correctly | Efficiency |
 | [curator-pipeline](skills/curator-pipeline/) | Curation pipeline — turn YouTube transcripts, article URLs, or pasted text into sellable HTML-PPT products | Writing |
 | [handoff](skills/handoff/) | Cross-agent work handoff protocol — factual HANDOFF.md + clean worktree on the way out, reconcile against real git state before picking up | Workflow |
+| [agnes-ai](skills/agnes-ai/) | Agnes AI image AND video generation — text/image-to-image, plus text/image/multi-image/keyframe video (async), results auto-downloaded locally | Creative |
 
 ## Installation
 
