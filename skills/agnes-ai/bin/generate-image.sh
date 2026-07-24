@@ -29,13 +29,7 @@ OUT_DIR=$(agnes_output_dir)
 TS=$(date +%s)
 OUTPUT_FILE="$OUT_DIR/agnes_image_${TS}.png"
 
-PAYLOAD_FILE=$(mktemp)
-RESP_FILE=$(mktemp)
-trap 'rm -f "$PAYLOAD_FILE" "$RESP_FILE"' EXIT
-
-# Build the request payload (user input via env -> json.dump, injection-safe).
-export AGNES_PROMPT="$PROMPT" AGNES_SIZE="$SIZE" AGNES_INPUT_IMAGE="$INPUT_IMAGE"
-python3 "$SCRIPT_DIR/_image.py" build > "$PAYLOAD_FILE"
+PYTHON_SCRIPT=$(agnes_native_path "$SCRIPT_DIR/_image.py")
 
 if [[ -n "$INPUT_IMAGE" ]]; then
   echo "Mode: image-to-image | size: $SIZE" >&2
@@ -43,45 +37,21 @@ else
   echo "Mode: text-to-image | size: $SIZE" >&2
 fi
 
-HTTP_CODE=$(curl -s -o "$RESP_FILE" -w "%{http_code}" --max-time 360 \
-  "$BASE_URL/v1/images/generations" \
-  -H "Authorization: Bearer ${API_KEY}" \
-  -H "Content-Type: application/json" \
-  -d "@${PAYLOAD_FILE}" 2>/dev/null || echo "000")
+# Do everything in Python: build payload, call API, download result.
+export AGNES_PROMPT="$PROMPT"
+export AGNES_SIZE="$SIZE"
+export AGNES_INPUT_IMAGE="$INPUT_IMAGE"
+export AGNES_API_KEY="$API_KEY"
+export AGNES_BASE_URL="$BASE_URL"
+export AGNES_OUTPUT_FILE="$(agnes_native_path "$OUTPUT_FILE")"
 
-if [[ "$HTTP_CODE" != "200" ]]; then
-  echo "ERROR: image generation failed — HTTP $HTTP_CODE ($(agnes_http_hint "$HTTP_CODE"))" >&2
-  head -c 400 "$RESP_FILE" >&2 && echo >&2
+RESULT=$(python3 "$PYTHON_SCRIPT" run 2>&1)
+RC=$?
+
+if [[ $RC -ne 0 ]]; then
+  echo "ERROR: image generation failed — $RESULT" >&2
   exit 1
 fi
 
-# Parse the response: URL to download, inline base64, or an error.
-export AGNES_RESP_FILE="$RESP_FILE" AGNES_OUTPUT_FILE="$OUTPUT_FILE"
-RESULT=$(python3 "$SCRIPT_DIR/_image.py" parse)
-
-case "$RESULT" in
-  URL:*)
-    IMG_URL="${RESULT#URL:}"
-    echo "Downloading image..." >&2
-    DL=$(curl -s -o "$OUTPUT_FILE" -w "%{http_code}" --max-time 120 "$IMG_URL" 2>/dev/null || echo "000")
-    if [[ "$DL" == "200" && -s "$OUTPUT_FILE" ]]; then
-      echo "Saved: $OUTPUT_FILE ($(wc -c < "$OUTPUT_FILE" | tr -d ' ') bytes)" >&2
-      echo "$OUTPUT_FILE"
-    else
-      echo "ERROR: failed to download generated image (HTTP $DL)" >&2
-      exit 1
-    fi
-    ;;
-  B64:*)
-    echo "Saved: $OUTPUT_FILE ($(wc -c < "$OUTPUT_FILE" | tr -d ' ') bytes)" >&2
-    echo "$OUTPUT_FILE"
-    ;;
-  ERR:*)
-    echo "ERROR: ${RESULT#ERR:}" >&2
-    exit 1
-    ;;
-  *)
-    echo "ERROR: unexpected parser output: $RESULT" >&2
-    exit 1
-    ;;
-esac
+echo "Saved: $RESULT" >&2
+echo "$OUTPUT_FILE"

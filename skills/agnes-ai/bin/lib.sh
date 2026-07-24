@@ -11,6 +11,14 @@
 #   agnes_base_url            - print the API base URL (override with AGNES_BASE_URL)
 #   agnes_output_dir          - print (and create) the output directory
 #   agnes_http_hint <code>    - print a human-readable hint for an HTTP status
+#   agnes_native_path         - convert POSIX path to native Windows path if needed
+#
+# Windows Git Bash compatibility note:
+#   On this system `command -v python3` returns the managed Windows Python
+#   (e.g. C:\Users\...\python3.exe). When invoked from Git Bash, SCRIPT_DIR
+#   resolves to POSIX /c/Users/... which Windows Python cannot open.
+#   Therefore we must convert POSIX paths to native Windows form before
+#   passing them as file arguments to python3.
 
 # Verify required external commands exist. Returns 1 (with a message) if not.
 agnes_require_cmds() {
@@ -73,6 +81,38 @@ agnes_output_dir() {
   local d="${AGNES_OUTPUT_DIR:-$HOME/agnes-output}"
   mkdir -p "$d"
   printf '%s' "$d"
+}
+
+# Convert a POSIX-style path like /c/Users/Digital/foo/bar to a native Windows path
+# C:\Users\Digital\foo\bar. URLs (http/https/data:) are returned unchanged.
+# Already-native Windows paths are returned as-is.
+agnes_native_path() {
+  local p="$1"
+  if [[ -z "$p" ]]; then
+    printf ''
+    return
+  fi
+  # URLs and data URIs pass through untouched.
+  if [[ "$p" =~ ^https?:// ]] || [[ "$p" =~ ^data: ]]; then
+    printf '%s' "$p"
+    return
+  fi
+  # Already native Windows path (X:\...) — leave alone.
+  if [[ "$p" =~ ^[A-Za-z]:\\.* ]]; then
+    printf '%s' "$p"
+    return
+  fi
+  # Git Bash POSIX path: /x/Users/... -> X:\Users\...
+  if [[ "$p" =~ ^/([a-zA-Z])(.*) ]]; then
+    local drive="${BASH_REMATCH[1]}"
+    local rest="${BASH_REMATCH[2]}"
+    # Escape backslashes for Windows consumer.
+    rest="${rest//\\/\\\\}"
+    printf '%s:\\%s' "${drive^^}" "$rest"
+    return
+  fi
+  # Relative or other path — leave alone.
+  printf '%s' "$p"
 }
 
 # Map an HTTP status code (or curl's 000) to a short human-readable hint.

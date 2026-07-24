@@ -25,8 +25,6 @@ source "$SCRIPT_DIR/lib.sh"
 PROMPT="${1:?Usage: generate-video.sh \"<prompt>\" [image] [duration_seconds]}"
 IMAGE_ARG="${2:-}"
 DURATION="${3:-5}"
-POLL_INTERVAL="${AGNES_VIDEO_POLL_INTERVAL:-5}"
-POLL_MAX="${AGNES_VIDEO_POLL_MAX:-120}"
 
 agnes_require_cmds || exit 1
 API_KEY=$(agnes_resolve_key) || exit 1
@@ -35,13 +33,7 @@ OUT_DIR=$(agnes_output_dir)
 TS=$(date +%s)
 OUTPUT_FILE="$OUT_DIR/agnes_video_${TS}.mp4"
 
-PAYLOAD_FILE=$(mktemp)
-RESP_FILE=$(mktemp)
-trap 'rm -f "$PAYLOAD_FILE" "$RESP_FILE"' EXIT
-
-# Build the create-task payload (user input via env -> json.dump, injection-safe).
-export AGNES_PROMPT="$PROMPT" AGNES_VIDEO_IMAGE="$IMAGE_ARG" AGNES_VIDEO_DURATION="$DURATION"
-python3 "$SCRIPT_DIR/_video.py" build > "$PAYLOAD_FILE"
+PYTHON_SCRIPT=$(agnes_native_path "$SCRIPT_DIR/_video.py")
 
 if [[ -z "$IMAGE_ARG" ]]; then
   MODE_DESC="text-to-video"
@@ -52,61 +44,21 @@ else
 fi
 echo "Mode: $MODE_DESC | target ~${DURATION}s" >&2
 
-# 1) Create the async task
-HTTP_CODE=$(curl -s -o "$RESP_FILE" -w "%{http_code}" --max-time 120 \
-  "$BASE_URL/v1/videos" \
-  -H "Authorization: Bearer ${API_KEY}" \
-  -H "Content-Type: application/json" \
-  -d "@${PAYLOAD_FILE}" 2>/dev/null || echo "000")
+# Do everything in Python: build payload, create task, poll, download.
+export AGNES_PROMPT="$PROMPT"
+export AGNES_VIDEO_IMAGE="$IMAGE_ARG"
+export AGNES_VIDEO_DURATION="$DURATION"
+export AGNES_API_KEY="$API_KEY"
+export AGNES_BASE_URL="$BASE_URL"
+export AGNES_OUTPUT_FILE="$(agnes_native_path "$OUTPUT_FILE")"
 
-if [[ "$HTTP_CODE" != "200" ]]; then
-  echo "ERROR: create video task failed — HTTP $HTTP_CODE ($(agnes_http_hint "$HTTP_CODE"))" >&2
-  head -c 400 "$RESP_FILE" >&2 && echo >&2
+RESULT=$(python3 "$PYTHON_SCRIPT" run 2>&1)
+RC=$?
+
+if [[ $RC -ne 0 ]]; then
+  echo "ERROR: video generation failed — $RESULT" >&2
   exit 1
 fi
 
-export AGNES_RESP_FILE="$RESP_FILE"
-CREATE=$(python3 "$SCRIPT_DIR/_video.py" parse-create)
-if [[ "$CREATE" != ID:* ]]; then
-  echo "ERROR: ${CREATE#ERR:}" >&2
-  exit 1
-fi
-VIDEO_ID="${CREATE#ID:}"
-echo "Task created: $VIDEO_ID — polling every ${POLL_INTERVAL}s (up to $((POLL_INTERVAL * POLL_MAX))s)..." >&2
-
-# 2) Poll until completed / failed / timeout
-VIDEO_URL=""
-for ((i = 1; i <= POLL_MAX; i++)); do
-  sleep "$POLL_INTERVAL"
-  PHTTP=$(curl -s -o "$RESP_FILE" -w "%{http_code}" --max-time 60 \
-    "$BASE_URL/agnesapi?video_id=${VIDEO_ID}" \
-    -H "Authorization: Bearer ${API_KEY}" 2>/dev/null || echo "000")
-  if [[ "$PHTTP" != "200" ]]; then
-    echo "  poll $i: HTTP $PHTTP ($(agnes_http_hint "$PHTTP")), retrying..." >&2
-    continue
-  fi
-  R=$(python3 "$SCRIPT_DIR/_video.py" parse-result)
-  case "$R" in
-    DONE:*) VIDEO_URL="${R#DONE:}"; echo "  completed." >&2; break ;;
-    FAIL:*) echo "ERROR: video generation failed — ${R#FAIL:}" >&2; exit 1 ;;
-    WAIT:*) rest="${R#WAIT:}"; echo "  poll $i: ${rest%%:*} ${rest#*:}%" >&2 ;;
-    *)      echo "  poll $i: unexpected parser output: $R" >&2 ;;
-  esac
-done
-
-if [[ -z "$VIDEO_URL" ]]; then
-  echo "ERROR: timed out after $((POLL_INTERVAL * POLL_MAX))s. The video may still be processing." >&2
-  echo "  Retry later: curl '$BASE_URL/agnesapi?video_id=${VIDEO_ID}' -H 'Authorization: Bearer YOUR_API_KEY'" >&2
-  exit 1
-fi
-
-# 3) Download the mp4
-echo "Downloading video..." >&2
-DL=$(curl -s -o "$OUTPUT_FILE" -w "%{http_code}" --max-time 300 "$VIDEO_URL" 2>/dev/null || echo "000")
-if [[ "$DL" == "200" && -s "$OUTPUT_FILE" ]]; then
-  echo "Saved: $OUTPUT_FILE ($(wc -c < "$OUTPUT_FILE" | tr -d ' ') bytes)" >&2
-  echo "$OUTPUT_FILE"
-else
-  echo "ERROR: failed to download video (HTTP $DL). URL: $VIDEO_URL" >&2
-  exit 1
-fi
+echo "Saved: $RESULT" >&2
+echo "$OUTPUT_FILE"
