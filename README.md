@@ -26,7 +26,7 @@ Copy this block to your AI assistant:
 
 ```bash
 # Download the skill collection
-git clone https://github.com/huaguihai/openskills.git
+git clone https://github.com/guihai24/openskills.git
 cd openskills
 
 # Install a single skill (sentinel as example)
