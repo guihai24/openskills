@@ -36,6 +36,10 @@ class NativePathTests(unittest.TestCase):
                     module._to_native_path("/var/tmp/output.png"),
                     "/var/tmp/output.png",
                 )
+                self.assertEqual(
+                    module._to_native_path("/tmp/output.png"),
+                    "/tmp/output.png",
+                )
 
     def test_msys_drive_paths_are_converted_by_windows_python(self):
         for module in self.modules:
@@ -45,6 +49,10 @@ class NativePathTests(unittest.TestCase):
                 self.assertEqual(
                     module._to_native_path("/c/Users/test/input.png"),
                     r"C:\Users\test\input.png",
+                )
+                self.assertEqual(
+                    module._to_native_path("images/input.png"),
+                    "images/input.png",
                 )
 
     def test_urls_and_data_uris_are_preserved(self):

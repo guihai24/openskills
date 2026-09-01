@@ -102,6 +102,11 @@ agnes_native_path() {
     printf '%s' "$p"
     return
   fi
+  # Relative paths work in every supported shell and must remain relative.
+  if [[ "$p" != /* ]]; then
+    printf '%s' "$p"
+    return
+  fi
   # Convert only inside Windows POSIX shells. macOS and Linux paths must pass
   # through unchanged even when their first directory begins with a letter.
   case "${MSYSTEM:-}:${OSTYPE:-}" in

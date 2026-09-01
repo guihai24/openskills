@@ -74,6 +74,33 @@ out=$(MSYSTEM=MINGW64 bash -c '
 check "native path uses Windows converter under Git Bash" \
   'C:\Users\test\input.png' "$out"
 
+out=$(MSYSTEM=MINGW64 bash -c '
+  cygpath() { printf "%s" "unexpected-conversion"; }
+  source "$1"
+  agnes_native_path "images/input.png"
+' _ "$BIN/lib.sh")
+check "native path preserves Windows relative path" \
+  'images/input.png' "$out"
+
+out=$(MSYSTEM=MINGW64 bash -c '
+  command() {
+    if [[ "$1" == "-v" && "$2" == "cygpath" ]]; then return 1; fi
+    builtin command "$@"
+  }
+  source "$1"
+  agnes_native_path "/c/Users/test/input.png"
+' _ "$BIN/lib.sh")
+check "native path fallback supports Git Bash drive path" \
+  'C:\Users\test\input.png' "$out"
+
+out=$(MSYSTEM=CYGWIN_NT bash -c '
+  cygpath() { printf "%s" "C:\\cygwin64\\home\\test\\input.png"; }
+  source "$1"
+  agnes_native_path "/home/test/input.png"
+' _ "$BIN/lib.sh")
+check "native path delegates Cygwin mount path" \
+  'C:\cygwin64\home\test\input.png' "$out"
+
 echo "== Python native path portability =="
 if python3 "$SCRIPT_DIR/test_native_paths.py"; then
   ok "Python native path portability"
