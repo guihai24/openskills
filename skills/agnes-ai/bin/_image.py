@@ -28,15 +28,18 @@ MODEL = "agnes-image-2.1-flash"
 
 
 def _to_native_path(p):
-    """Convert /c/Users/foo/bar -> C:\\Users\\foo\\bar for Python."""
+    """Convert Git Bash /c/... paths only under native Windows Python."""
     if not p:
         return p
     if p.startswith(("http://", "https://", "data:")):
         return p
-    m = re.match(r'^/([a-zA-Z])(.*)$', p)
-    if m:
-        return "{}:\\{}".format(m.group(1).upper(), m.group(2))
-    return p
+    if os.name != "nt":
+        return p
+    match = re.match(r"^/([a-zA-Z])(?:/(.*))?$", p)
+    if not match:
+        return p
+    rest = (match.group(2) or "").replace("/", "\\")
+    return "{}:\\{}".format(match.group(1).upper(), rest)
 
 
 def _build_payload():
