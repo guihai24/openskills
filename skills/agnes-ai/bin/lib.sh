@@ -102,16 +102,32 @@ agnes_native_path() {
     printf '%s' "$p"
     return
   fi
-  # Git Bash POSIX path: /x/Users/... -> X:\Users\...
-  if [[ "$p" =~ ^/([a-zA-Z])(.*) ]]; then
-    local drive="${BASH_REMATCH[1]}"
-    local rest="${BASH_REMATCH[2]}"
-    # Escape backslashes for Windows consumer.
-    rest="${rest//\\/\\\\}"
-    printf '%s:\\%s' "${drive^^}" "$rest"
+  # Relative paths work in every supported shell and must remain relative.
+  if [[ "$p" != /* ]]; then
+    printf '%s' "$p"
     return
   fi
-  # Relative or other path — leave alone.
+  # Convert only inside Windows POSIX shells. macOS and Linux paths must pass
+  # through unchanged even when their first directory begins with a letter.
+  case "${MSYSTEM:-}:${OSTYPE:-}" in
+    MINGW*:*|MSYS*:*|CYGWIN*:*|*:msys*|*:cygwin*)
+      if command -v cygpath >/dev/null 2>&1; then
+        cygpath -w "$p"
+        return
+      fi
+      # Portable fallback for minimal Windows POSIX environments. Avoid Bash 4
+      # case conversion because macOS ships Bash 3.2.
+      if [[ "$p" =~ ^/([a-zA-Z])(/.*)?$ ]]; then
+        local drive rest
+        drive=$(printf '%s' "${BASH_REMATCH[1]}" | tr '[:lower:]' '[:upper:]')
+        rest="${BASH_REMATCH[2]:-/}"
+        rest="${rest//\//\\}"
+        printf '%s:%s' "$drive" "$rest"
+        return
+      fi
+      ;;
+  esac
+  # POSIX, relative, or otherwise unrecognized path — leave alone.
   printf '%s' "$p"
 }
 
