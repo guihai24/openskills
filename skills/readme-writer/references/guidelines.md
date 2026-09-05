@@ -1,357 +1,249 @@
-# README 编写规范（AI 时代版）
+# README 编写规范与心智推演手册 (v3.0)
 
-**制定时间**：2026-04-03
-**制定人**：老大
-**版本**：v2.0
-
----
-
-## 设计目标
-
-一份好的 README 要同时服务两类读者：
-
-- **人类**：3 秒判断"这项目跟我有没有关系"，30 秒跑起来
-- **AI Agent**：拿到 README 就能自主完成 clone → install → configure → run → verify 全流程，不需要人类补充信息
+**制定时间**：2026-09-06  
+**版本**：v3.0（心智驱动与现代开源标准版）  
+**适用对象**：面向 AI Coding Agent（Claude Code / AntiGravity / Cursor / Codex）与人类开源维护者
 
 ---
 
-## 一、首屏黄金区（3 秒定生死）
+## 🎯 设计目标
 
-打开 README 的前 3 秒决定用户去留。首屏必须包含：
+一份顶级的开源 README 绝不是一份产品功能规格说明书，而是一个**漏斗型的心智转化引擎**：
 
-1. **项目名 + 一句话定位**（≤ 20 字，说清楚"这东西是干嘛的"）
-2. **Badges**：语言/框架版本、License、CI 状态、包版本号——只放有信息量的，不要堆装饰
-3. **适用 / 不适用场景**（可选但推荐，帮用户快速排除）
+```
+[0 ~ 5 秒]    首屏视觉锤 (Visual Proof) ──> 击穿注意力，确认相关性
+[5 ~ 30 秒]   痛点与降维对比 (Contrast)   ──> 建立不可替代的价值认知与信任
+[30 ~ 60 秒]  极速上手与验证 (Verify Loop) ──> 消除上手摩擦，10 秒获得正向反馈
+[按需查阅]    架构深度与折叠配置 (Deep Dive) ──> 满足硬核开发者对工程细节的推敲
+```
+
+同时，它必须提供**“面向人类”**与**“面向 AI Agent”**的双轨友好接入通道。
+
+---
+
+## 一、 首屏黄金律（3 秒定生死）
+
+开发者打开 GitHub 仓库的前 3 秒决定了他们是点击 Star / 克隆试用，还是直接关掉标签页。
+
+### 1.1 动宾结构一句话定位（One-liner）
+- 拒绝空泛的大词（如“现代化的”、“强大的”、“简单易用的”）；
+- 必须遵循：`[动词] + [差异化机制/技术特性] + [最终业务价值]`（≤ 25 字）。
+- **反例**：*“一个功能强大的跨工具记忆共享工具。”*
+- **正例**：*“打通 Claude Code、Cursor 与 AntiGravity 的记忆孤岛——基于 Git 与原生守护进程的无感跨 Agent 记忆同步中枢。”*
+
+### 1.2 首屏视觉锤（Visual Hammer）
+**没有视觉证据的开源项目，说服力直接减半。** 首屏标题下方必须包含以下之一：
+1. **真实产物效果图 / GIF 录屏**：如 UI 界面、最终生成的文档效果（可使用 `<picture>` 标签自适应 GitHub 明暗主题）：
+   ```html
+   <p align="center">
+     <picture>
+       <source media="(prefers-color-scheme: dark)" srcset="docs/assets/banner-dark.png">
+       <img src="docs/assets/banner-light.png" alt="Project Banner" width="800">
+     </picture>
+   </p>
+   ```
+2. **终端高亮模拟（Console Mockup）**：CLI 工具在无图时，**必须**使用 `console` 代码块模拟出带命令提示符 `$`、状态对勾 `✓` 与执行耗时的真实反馈：
+   ```console
+   $ sync-brain
+   [Memory Hub] Scanning active agents...
+   ✓ Pulled latest memories from remote (git rebase)
+   ✓ Compiled 3 new gotchas from Claude Code
+   ✓ Injected safe anchor into ~/.gemini/GEMINI.md
+   ✨ All agents synchronized (0.42s)
+   ```
+
+### 1.3 诚实的边界（Boundaries）
+在首屏之后，用一行直白的对照建立极客信任：
+- **适合**：多 AI 工具重度用户、需要在本地保有隐私与 Git 历史、追求零额外进程依赖
+- **不适合**：只需要单工具且不换设备、愿意付费使用闭源 SaaS 托管的用户
+
+---
+
+## 二、 Agent Launchpad（AI 时代的极速接入）
+
+> **革新说明**：废弃过去容易造成信息冗余且对人类不可见的隐藏式 `<!-- AI-CONTEXT -->` 注释，升级为**显式的一键 Prompt 块与首问预设池**。
+
+### 2.1 一键投喂 Prompt 块（面向 AI 助手）
+在 Quickstart 最前列，提供可直接复制丢给 Claude Code / AntiGravity / Cursor 的提示词：
+
+````markdown
+### 🤖 面向 AI 助手一键接入
+在任意支持终端与文件操作的 AI 助手（Claude Code / AntiGravity / Cursor / Codex）中发送：
+```text
+请克隆并配置 [项目名称]：[GitHub Repo URL]，实现 [核心目标]。请读取该仓库中的 AGENTS.md 遵循其引导规范执行。
+```
+````
+
+### 2.2 首问预设词池（Prompt Bank）
+用户装完 Skill / 工具后，最常面临的问题是“我不知道第一句该怎么问它”。必须提供 3~4 个立即可用的场景提示词：
 
 ```markdown
-# cckey
-
-管理多个 Anthropic API key 自动轮换的 CLI 工具。
-
-[![Node](https://img.shields.io/badge/node-%3E%3D18-brightgreen)]()
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue)]()
-
-**适合**：需要多 key 负载均衡、自动容错的 API 重度用户
-**不适合**：只有一个 key 的轻度使用者
+### 装好后，直接对你的 Agent 说：
+- "帮我分析当前项目的架构特点，并生成对应的记忆规则"
+- "检查当前各工具的手写配置，确认锚点区间是否完整"
+- "模拟一次记忆冲突，验证分区分立机制是否正常"
 ```
 
-**不要**：用大段文字描述项目愿景。没人在首屏看小作文。
+### 2.3 降级兼容说明（Graceful Fallback）
+如果用户的环境不支持自动化安装（如网页版 ChatGPT 或普通聊天窗口），给出极简平替指引：
+> *如果你的工具不支持一键安装 Skill，可直接将本项目中的 `SKILL.md`（或规则文件）内容全文复制并作为系统提示词/上下文规则贴入对话中，效果完全对等。*
 
 ---
 
-## 二、AI Agent 快速接入
+## 三、 价值锚点与降维横向对比（Vs Alternatives）
 
-> 这是整份规范的核心差异点。传统 README 假设用户懂代码、会操作；AI 时代的 README 要让 Agent 能"自助"跑通。
+为什么开发者要在已有方案的情况下选择你的项目？不要靠口号，用**硬核横向对比表**说话。
 
-### 2.1 结构化元数据块
-
-在 README 顶部（badges 之后）放一段 HTML 注释，AI 解析这段比读自然语言快且准：
-
-```html
-<!-- AI-CONTEXT
-project: cckey
-one-liner: Anthropic API key 轮换管理 CLI
-language: Node.js
-min_runtime: node >= 18.0.0
-package_manager: npm
-install: npm install -g cckey
-config_file: ~/.cckey/config.json
-test: npm test
-verify: cckey --version
-entry: src/index.js
--->
-```
-
-字段说明：
-
-| 字段 | 必填 | 说明 |
-|------|------|------|
-| `project` | 是 | 项目名 |
-| `one-liner` | 是 | 一句话说明 |
-| `language` | 是 | 主语言 |
-| `min_runtime` | 是 | 运行环境最低版本 |
-| `package_manager` | 是 | 包管理器（npm / pip / cargo 等） |
-| `install` | 是 | 安装命令 |
-| `test` | 否 | 测试命令 |
-| `verify` | 是 | 安装成功的验证命令 |
-| `config_file` | 否 | 配置文件路径 |
-| `entry` | 否 | 程序入口文件 |
-
-### 2.2 Agent Quick Start 区块
-
-面向"用户把 README 丢给 AI"的场景。要求：
-
-1. **完整可执行**——从 clone 到验证成功，中间不需要人类补充任何信息
-2. **环境检查在前**——先确认环境，再装东西
-3. **验证在后**——必须有明确的"成功标志"
+### 3.1 核心竞品对比表规范（M/L 级必选）
+对比表必须切中开发者最在意的**隐形成本与架构摩擦**：
 
 ```markdown
-## Agent Quick Start
+### 方案对比
 
-复制以下内容给你的 AI 助手，它会自主完成所有操作：
-
-\```bash
-# 环境检查
-node -v  # 需要 >= 18.0.0，不满足请先升级
-
-# 安装
-git clone https://github.com/xxx/cckey.git
-cd cckey
-npm install
-
-# 配置（首次使用）
-mkdir -p ~/.cckey
-cat > ~/.cckey/config.json << 'EOF'
-{
-  "keys": ["sk-ant-xxx-your-key-1", "sk-ant-xxx-your-key-2"],
-  "strategy": "round-robin"
-}
-EOF
-
-# 验证安装成功
-cckey --version   # 应输出 1.x.x
-cckey health      # 应显示所有 key 状态为 active
-\```
+| 功能特性 | 本项目 (Agent Memory Hub) | 向量化方案 (Mem0 / Letta) | 手写规则文件 (.cursorrules) |
+| :--- | :---: | :---: | :---: |
+| **基础依赖** | **零外部依赖** (纯 Git + Python 标准库) | 重型 (需向量数据库 / Docker / SaaS) | 无 |
+| **数据隐私** | **本地优先 / 私有仓库** (数据自持) | 第三方云端托管存储 | 本地存储 |
+| **使用成本** | **完全免费开源** | 需支付 Embedding API / 订阅费 | 免费 |
+| **多 Agent 互通** | **双向自动同步** (已覆盖主流 5+ 款) | 需自行接入各工具 SDK | 无法跨工具同步 |
+| **非破坏性注入** | **锚点安全隔离** (保留原手写配置) | 覆盖文件或需自定义 Hook | 无防护机制 |
 ```
 
-### 2.3 Troubleshooting（Top 3 即可）
+### 3.2 决策断言（Decision Axiom）
+在对比表下方，给出 1 句极度克制有力的决策判断：
+> *“想省心托管且预算充裕？选 Mem0；单工具且不怕重复配？选手写规则；跨多端且注重隐私与零维护成本？选 Agent Memory Hub。”*
 
-AI 跑到一半报错时，需要 README 里有对应的恢复指引。**只写最常见的 3 个问题**，不要写成 FAQ 大全：
+---
+
+## 四、 零摩擦上手与验证闭环（The 3-Beat Loop）
+
+**任何不包含“验证步骤”的安装指南都是半吊子。** 读者跑完命令必须能立刻确认“自己成功了没有”。
+
+### 4.1 三步极速闭环标准
 
 ```markdown
-## 常见问题
+## 极速上手
 
-**`EACCES: permission denied` 安装失败？**
-→ `sudo npm install -g cckey` 或改用 `npx cckey`
+### 1. 安装 (Execute)
+```bash
+curl -fsSL https://example.com/install.sh | bash
+```
 
-**`API key invalid` 报错？**
-→ 运行 `cckey health` 检查各 key 状态，过期的 key 从配置中移除
+### 2. 验证环境与运行 (Check)
+```bash
+my-tool --dry-run
+```
 
-**启动后端口被占用？**
-→ `lsof -i :3000` 找到占用进程，`kill` 掉或改配置文件里的 port
+### 3. 预期成功输出 (Expected Output)
+若安装成功，你将看到如下输出：
+```console
+[my-tool] Environment check: OK (Python 3.11, Git 2.40+)
+[my-tool] Safe-fence detected in CLAUDE.md
+[my-tool] Ready to synchronize!
+```
 ```
 
 ---
 
-## 三、视觉友好——让人快速扫读
+## 五、 视觉友好与排版收敛美学
 
-### 3.1 信息分层
-
-| 层级 | 内容 | 展示方式 |
-|------|------|---------|
-| 必读 | 首屏、安装、基本用法 | 直接展开 |
-| 按需 | 高级配置、自定义模板 | `<details>` 折叠 |
-| 参考 | 完整配置项、API 列表 | 表格，或链接到独立文档 |
-
-### 3.2 图表优先
-
-- 架构图、流程图**优先用 Mermaid**（GitHub 原生渲染，AI 可读可改）
-- Mermaid 不够用时再用 ASCII art 或 PNG
-- 每张图必须有文字标题，不要让图"裸奔"
+### 5.1 折叠收敛规则（Collapsing Policy）
+长篇大论是 README 的毒药。**主页面垂直高度应尽量控制在 3~4 屏以内**。以下内容必须强制使用 `<details>` 折叠：
+1. **多操作系统差异安装**（如 Windows PowerShell / Linux Systemd 手动配置）；
+2. **完整的 CLI 参数参考表（Flag Reference）**；
+3. **源码模块调用与深层原理解析**。
 
 ```markdown
-### 架构总览
+<details>
+<summary><b>展开查看 Windows PowerShell 手动配置与后台计划任务...</b></summary>
 
-\```mermaid
-graph LR
-    A[CLI 输入] --> B[命令解析]
-    B --> C[上下文构建]
-    C --> D[AI 引擎]
-    D --> E[输出格式化]
-    E --> F[写入文件/stdout]
-\```
+```powershell
+.\scripts\daemon_manager.ps1 -Action install -Interval 900
+```
+</details>
 ```
 
-### 3.3 超过 300 行加目录
+### 5.2 概念解耦速通（How It Fits Together）
+取代冗长的代码流水账，用 3~4 个核心名词解释系统的拓扑关系：
+- **Control Plane（控制面）**：管理本地配置与调度；
+- **Staging Area（写入缓冲区）**：各 Agent 独立写入，天然解耦 Git 冲突；
+- **Anchor Injector（注入引擎）**：通过安全锚点无缝合入真实生效文件。
 
-长文档在首屏之后、正文之前加 TOC。手写或用工具生成都行，保持更新即可。
-
-### 3.4 Badge 克制
-
-只放有信息量的 badge（CI 状态、版本号、License）。不要堆 10 个装饰性 badge，那是视觉噪音。
-
----
-
-## 四、工作原理——降低理解成本
-
-这是让 AI（和人类）快速理解项目的关键区块。
-
-### 必须包含
-
-1. **架构图**（Mermaid 优先）
-2. **核心流程**：4-6 个步骤，每步标注对应源文件路径
-3. **关键设计决策**：3-5 个，用"为什么"句式，解释 tradeoff
-
-### 示例
+### 5.3 任务驱动型文档导航（Goal-oriented Table）
+替代传统的扁平文件列表，以用户要达成的目标为引导：
 
 ```markdown
-## 工作原理
+## 文档指引
 
-### 核心流程
-
-1. **命令解析**（`src/cli/parser.js`）
-   - commander.js 解析参数，提取意图和目标文件
-
-2. **上下文构建**（`src/context/builder.js`）
-   - 读取文件内容 + 分析 import 依赖
-   - 控制上下文不超过 8K tokens
-
-3. **AI 调用**（`src/ai/engine.js`）
-   - 流式 API 请求，3 次指数退避重试
-
-4. **输出处理**（`src/output/formatter.js`）
-   - 提取代码块 → 语法验证 → 格式化 → 写入
-
-### 关键设计决策
-
-- **为什么用流式 API？** 大文件生成时用户实时看到进度，不用干等
-- **为什么限制 8K tokens？** 超过这个阈值，成本涨但效果不涨
-- **为什么做语法验证？** AI 生成的代码可能有语法错，先验后写避免破坏项目
+| 你想实现的目标 (Goal) | 推荐阅读 (Start Here) |
+| :--- | :--- |
+| 为新 Agent 编写适配器规则 | [适配器开发规范](./references/agent_adapters.md) |
+| 后台守护进程无法启动时排查 | [故障诊断手册](./references/troubleshooting.md) |
+| 参与核心引擎功能贡献 | [CONTRIBUTING.md](./CONTRIBUTING.md) |
 ```
 
 ---
 
-## 五、中文版
+## 六、 文案去 AI 味与真实人设立场
 
-- 所有对外项目必须有中文版（双语同文件或独立 `README.zh-CN.md`）
-- 中文版不是逐句翻译，是**本地化适配**：
-  - 命令和代码保持英文，注释用中文
-  - 补充国内替代方案（npm 镜像、GitHub 加速等）
-  - 可以省略对国内用户无意义的段落（如 Contributing guidelines）
+### 6.1 禁止词汇与改进对照
 
----
+| 类型 | 严禁出现的 AI 假大空 | 推荐的极客与工程师表达 |
+| :--- | :--- | :--- |
+| **空泛形容词** | “功能强大”、“极致优雅”、“无缝集成”、“卓越性能” | 列出具体指标或机制（如“零第三方依赖”、“正则脱敏”、“0.4秒完成”） |
+| **AI 机械铺垫** | “在当今快速发展的软件工程领域中…” | 直接删除，第一句话直入主题：“为什么需要这个工具” |
+| **假装热情** | “让我们开启奇妙的旅程吧！🚀🎉” | 删掉，保持冷静专业的工程师对话语气 |
+| **虚假高深** | “采用先进的分布式协调算法” | “通过 Git rebase 和分区分立目录避免写冲突” |
 
-## 六、文案去 AI 味
-
-README 是工具说明书，不是产品宣传页。像给同事写使用说明一样写。
-
-### 禁止清单
-
-| 类型 | 反例 | 改成 |
-|------|------|------|
-| 空泛形容 | "强大的"、"优雅的"、"无缝集成" | 删掉，或换成具体数字/场景 |
-| 技术吹嘘 | "采用先进的微服务架构" | "4 个独立服务，通过 HTTP 通信" |
-| AI 八股开头 | "在当今快速发展的…" | 直接说是什么、干什么 |
-| 均匀三段式 | 每个功能都 What/Why/How | 有话则长，无话则短 |
-| AI 味标题 | What It Does / How It Works | 核心功能 / 工作原理 |
-| 虚假亲切 | "让我们开始吧！🚀" | 删掉 |
-
-### 检验方法
-
-读一遍你写的 README，问自己：**"这像是一个真正在用这个工具的人写的，还是像 AI 生成后没改过的？"** 如果答案是后者，重写。
+### 6.2 开发者真诚感（Authenticity）
+让文档读起来像是一个刚刚在生产环境解决完痛点、迫不及待分享给同事的技术负责人写的：
+> *“写这个工具的原因很简单：我自己每天在 Claude Code 和 Cursor 之间来回切换，花半小时总结出来的 TS 严格模式避坑规则，切到 Cursor 又得重犯一遍。我试过市面上的云端记忆方案，不是要配 Docker 就是要收 token 费，所以我决定用最朴素的 Git 和本地守护进程彻底解决这个问题。”*
 
 ---
 
-## 七、弹性骨架
+## 七、 四大项目类型模态参考骨架 (Archetypes)
 
-骨架分三层。必选项保证基本质量，推荐项提升体验，可选项按项目需要自由组合。
+### 模态 1：CLI 命令行工具
+- **Hero**：项目名 + 动宾定位 + `console` 高亮带耗时终端模拟
+- **The Pitch**：痛点金句 + 一个工具取代 N 个工具的清单
+- **Quickstart**：一行安装（macOS/Win/Linux） + `my-tool --version` 验证输出
+- **Features**：核心子命令速查表（命令 / 说明 / 示例）
+- **Deep Dive**：`<details>` 折叠完整参数表与故障恢复
 
-### Section 顺序与分层
+### 模态 2：SDK / 库 (Library)
+- **Hero**：项目名 + 定位 + Badges（版本/测试覆盖率/CI）
+- **The Pitch**：Benchmark 性能对比图表（与同类库对比）
+- **Quickstart**：`pip install` / `npm install` + **5 行代码上手示例 (Quick Snippet)** + 预期返回值
+- **Features**：核心 API 签名与设计哲学（Tradeoff 权衡）
+- **Deep Dive**：`<details>` 折叠高级配置与类型定义
 
-| 顺序 | Section | 层级 | 说明 |
-|------|---------|------|------|
-| 1 | 项目名 + 一句话定位 | **必选** | ≤ 20 字说清是什么 |
-| 2 | Badges | **必选** | 只放有信息量的 |
-| 3 | AI-CONTEXT 元数据 | **必选** | HTML 注释，AI 机器可读 |
-| 4 | 适用 / 不适合场景 | 推荐 | 帮用户 3 秒内判断相关性 |
-| 5 | 目录（TOC） | 条件必选 | 超过 300 行时必须有 |
-| 6 | Agent Quick Start | **必选** | 完整可执行的自动化流程 |
-| 7 | 核心功能 | **必选** | 表格或短列表 |
-| 8 | 工作原理 | 推荐 | 架构图 + 流程 + 设计决策 |
-| 9 | 安装 | **必选** | 含环境要求 |
-| 10 | 配置 | 条件必选 | 有配置文件的项目必须有 |
-| 11 | 基本用法 | **必选** | 可直接复制运行的示例 |
-| 12 | 高级功能 | 可选 | `<details>` 折叠 |
-| 13 | 配置参考 | 可选 | 完整参数表格 |
-| 14 | 常见问题 | **必选** | Top 3 报错及解法 |
-| 15 | — 扩展插槽 — | 可选 | 见下方"个性化扩展区" |
-| 16 | License | **必选** | — |
-| 17 | 中文版 | 推荐 | 对外项目必须有 |
+### 模态 3：Agent / Skill 规则库 (如 Agent Memory Hub, PPT Skill)
+- **Hero**：项目名 + 定位 + 真实产物最终渲染图 / 终端对比
+- **The Pitch**：开发者的真实抓狂场景 + 降维对比表（Vs Alternatives）
+- **Agent Launchpad**：一键投喂 Prompt 块 + 首问预设词池（Prompt Bank） + 降级说明
+- **Quickstart**：人类手动安装命令 + 3 步验证闭环（Verify It Works）
+- **Deep Dive**：多 Agent 兼容矩阵 + 核心安全隔离机制说明 + 目标导向文档表
 
-### 个性化扩展区（第 15 槽位）
-
-不同项目有不同需求，以下 section 按需插入，位置统一放在"常见问题"之后、"License"之前：
-
-| Section | 适用场景 | 放置建议 |
-|---------|---------|---------|
-| **Roadmap** | 有明确迭代计划的项目 | checkbox 列表，标注预期版本号 |
-| **Migration Guide** | 有破坏性变更的大版本升级 | 按版本号分区，列出 breaking changes + 迁移步骤 |
-| **Benchmarks** | 性能敏感的项目（数据库、网络库等） | 表格或图表，标注测试环境和方法 |
-| **Security Policy** | 处理认证/加密/用户数据的项目 | 漏洞上报方式 + 支持的版本范围 |
-| **Examples 目录** | SDK、框架类项目 | 链接到 `/examples` 目录，每个示例一行简介 |
-| **Changelog** | 发布频率高的项目 | 链接到 `CHANGELOG.md`，README 里只放最近 3 个版本摘要 |
-| **Contributing** | 接受外部贡献的开源项目 | 链接到 `CONTRIBUTING.md`，README 里只放"我们需要帮助的方向" |
-| **致谢 / Sponsors** | 有赞助或重要依赖致谢 | 简短列表或 logo 行 |
-| **相关项目** | 生态内有配套工具 | 表格：项目名 + 一句话说明 + 链接 |
-| **API Reference** | 提供 API 的库 | 链接到独立文档站或 `/docs`，README 里只放快速示例 |
-| **Docker / 部署** | 提供容器化部署的项目 | docker run 一行命令 + docker-compose 示例 |
-
-**原则**：扩展区的 section 不设上限，但每个 section 在 README 里的篇幅要克制——详细内容链接到独立文件，README 里只放摘要和入口。
-
-### AI-CONTEXT 元数据扩展字段
-
-当项目有个性化内容时，在基础字段之外追加对应字段，让 AI 也能感知：
-
-```html
-<!-- AI-CONTEXT
-project: my-db-driver
-one-liner: 高性能 PostgreSQL 连接池
-language: Rust
-min_runtime: rustc >= 1.75
-package_manager: cargo
-install: cargo install my-db-driver
-verify: my-db-driver --version
-# — 以下为可选扩展字段 —
-docker: docker run -p 5432:5432 my-db-driver
-docs: https://my-db-driver.dev/docs
-changelog: CHANGELOG.md
-benchmark: benches/README.md
-migration_guide: docs/MIGRATION-v3.md
--->
+### 模态 4：Fullstack / Web App
+- **Hero**：项目名 + 定位 + UI 界面截图（Dark/Light 自适应）
+- **The Pitch**：业务痛点 + 核心特色
+- **Quickstart**：`docker compose up` 一键启动 + 打开浏览器访问 `http://localhost:3000` + 预期看到什么
+- **Architecture**：Mermaid 系统架构拓扑（前端 / 后端 / 数据库 / 外部服务）
+- **Deep Dive**：环境变量配置表（默认值、必填项） + `<details>` 折叠部署运维指南
 
 ---
 
-## 八、质检 Checklist（按项目规模分级）
+## 八、 行动级质检矩阵 (Audit Matrix)
 
-不同规模的项目，要求不同。先判断项目级别，再对照对应的 checklist。
+质检模式下，必须严格根据以下 8 项进行打分：
 
-### 项目分级
-
-| 级别 | 判断标准 | 典型例子 |
-|------|---------|---------|
-| **S 级（小）** | 单文件或 < 500 行代码，无配置文件 | 一个 shell 脚本、一个 utils 库 |
-| **M 级（中）** | 多文件、有配置、有依赖 | CLI 工具、小型 Web 应用 |
-| **L 级（大）** | 多模块/多服务、有 API、面向外部用户 | 框架、SDK、开源项目 |
-
-### Checklist
-
-| # | 检查项 | S 级 | M 级 | L 级 | 通过标准 |
-|---|--------|------|------|------|---------|
-| 1 | 首屏信息密度 | ✅ | ✅ | ✅ | 项目名 + 一句话定位 + badges |
-| 2 | AI-CONTEXT 元数据 | ✅ | ✅ | ✅ | 基础字段完整 |
-| 3 | Agent Quick Start | ✅ | ✅ | ✅ | clone → install → verify 可执行 |
-| 4 | 核心功能 | ✅ | ✅ | ✅ | 表格或列表 |
-| 5 | 安装 + 基本用法 | ✅ | ✅ | ✅ | 可直接复制运行 |
-| 6 | 验证命令 | ✅ | ✅ | ✅ | 有明确的成功标志 |
-| 7 | 去 AI 味 | ✅ | ✅ | ✅ | 无空泛形容、无八股开头 |
-| 8 | 常见问题 | — | ✅ | ✅ | Top 3 报错及解法 |
-| 9 | 工作原理 | — | ✅ | ✅ | 架构图 + 流程 + 源文件路径 |
-| 10 | 设计决策 | — | ✅ | ✅ | 3-5 个"为什么" |
-| 11 | 配置参考 | — | ✅ | ✅ | 完整参数表格 |
-| 12 | 信息分层 | — | — | ✅ | 必读展开、按需折叠 |
-| 13 | 中文版 | — | — | ✅ | 本地化（非翻译） |
-| 14 | 扩展区按需填充 | — | — | ✅ | Roadmap/Migration 等该有的都有 |
-
-### 判定标准
-
-- **S 级**（7 项必查）：7/7 = ✅ ｜ 6/7 = ⚠️ ｜ < 6 = ❌
-- **M 级**（11 项必查）：11/11 = ✅ ｜ 9-10 = ⚠️ ｜ < 9 = ❌
-- **L 级**（14 项必查）：14/14 = ✅ ｜ 12-13 = ⚠️ ｜ < 12 = ❌
-
----
-
-## 九、应用场景
-
-- 所有新项目的 README 必须遵循本规范
-- 现有项目逐步改造，优先级：对外开源 > 内部工具 > 个人项目
-- 做成 skill 后，触发词：`写 README`、`生成 README`、`优化 README`、`README 质检`
+| # | 检查项 | 满分标准 (Pass Criteria) | 扣分项 (Fail Reason) |
+|---|--------|--------------------------|---------------------|
+| 1 | **动宾一句话定位** | 说明具体机制与业务价值，≤ 25 字 | 出现“功能强大”、“现代化”、“简单好用”等空词 |
+| 2 | **视觉产物证据** | 有真实截图/动图，或带状态对勾与耗时的 `console` 终端模拟 | 纯文字排版，无任何视觉反馈或终端输出 |
+| 3 | **Agent Launchpad** | 面向 AI 助手有显式的一键 Prompt 块与首问预设词池 | 仅有隐藏的 HTML 注释，或未给出 Agent 引导词 |
+| 4 | **降维横向对比** | M/L 级项目包含与 2 个以上替代方案的客观对比表 | 仅自夸自身功能，没有竞品差异化分析 |
+| 5 | **上手验证闭环** | Quickstart 包含验证命令及预期的成功输出片段 | 只有 install 命令，没有验证是否跑通的说明 |
+| 6 | **折叠收敛美学** | 超过 5 行的参数参考表、多系统差异配置封装在 `<details>` 中 | 页面无序冗长，各种环境细节平铺占满屏幕 |
+| 7 | **文案真实感** | 无 AI 八股开头，语调像技术同事诚恳分享 | 出现“在当今快速发展的…”、“旨在”、“致力于” |
+| 8 | **代码取证真实性** | 列出的命令与参数在代码库中 100% 真实存在 | 靠大模型常识脑补了项目中不存在的 flags |
