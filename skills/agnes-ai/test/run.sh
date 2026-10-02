@@ -62,6 +62,52 @@ check "http_hint 401" "unauthorized — check your AGNES_API_KEY" \
 check "http_hint 000" "network error or timeout — check connectivity" \
   "$(bash -c "source '$BIN/lib.sh'; agnes_http_hint 000")"
 
+echo "== lib.sh: native path portability =="
+check "native path preserves POSIX absolute path" "/Users/test/input.png" \
+  "$(bash -c "source '$BIN/lib.sh'; agnes_native_path '/Users/test/input.png'")"
+
+out=$(MSYSTEM=MINGW64 bash -c '
+  cygpath() { printf "%s" "C:\\Users\\test\\input.png"; }
+  source "$1"
+  agnes_native_path "/c/Users/test/input.png"
+' _ "$BIN/lib.sh")
+check "native path uses Windows converter under Git Bash" \
+  'C:\Users\test\input.png' "$out"
+
+out=$(MSYSTEM=MINGW64 bash -c '
+  cygpath() { printf "%s" "unexpected-conversion"; }
+  source "$1"
+  agnes_native_path "images/input.png"
+' _ "$BIN/lib.sh")
+check "native path preserves Windows relative path" \
+  'images/input.png' "$out"
+
+out=$(MSYSTEM=MINGW64 bash -c '
+  command() {
+    if [[ "$1" == "-v" && "$2" == "cygpath" ]]; then return 1; fi
+    builtin command "$@"
+  }
+  source "$1"
+  agnes_native_path "/c/Users/test/input.png"
+' _ "$BIN/lib.sh")
+check "native path fallback supports Git Bash drive path" \
+  'C:\Users\test\input.png' "$out"
+
+out=$(MSYSTEM=CYGWIN_NT bash -c '
+  cygpath() { printf "%s" "C:\\cygwin64\\home\\test\\input.png"; }
+  source "$1"
+  agnes_native_path "/home/test/input.png"
+' _ "$BIN/lib.sh")
+check "native path delegates Cygwin mount path" \
+  'C:\cygwin64\home\test\input.png' "$out"
+
+echo "== Python native path portability =="
+if python3 "$SCRIPT_DIR/test_native_paths.py"; then
+  ok "Python native path portability"
+else
+  no "Python native path portability"
+fi
+
 echo "== _image.py: payload build =="
 pj=$(AGNES_PROMPT='a cat' AGNES_SIZE='800x600' python3 "$BIN/_image.py" build)
 check "img model" "agnes-image-2.1-flash" \
@@ -88,7 +134,7 @@ pj=$(AGNES_PROMPT='x' AGNES_INPUT_IMAGE='https://e.com/a.png' python3 "$BIN/_ima
 check "img i2i url under extra_body.image" "https://e.com/a.png" \
   "$(printf '%s' "$pj" | python3 -c 'import json,sys;print(json.load(sys.stdin)["extra_body"]["image"][0])')"
 
-tmpimg=$(mktemp --suffix=.png); printf 'PNGDATA' > "$tmpimg"
+tmpimg=$(mktemp); printf 'PNGDATA' > "$tmpimg"
 pj=$(AGNES_PROMPT='x' AGNES_INPUT_IMAGE="$tmpimg" python3 "$BIN/_image.py" build)
 check "img i2i local file -> data uri" "data:image/png;base64," \
   "$(printf '%s' "$pj" | python3 -c 'import json,sys;print(json.load(sys.stdin)["extra_body"]["image"][0][:22])')"
