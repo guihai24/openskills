@@ -4,9 +4,19 @@
 
 set -euo pipefail
 
-BASE_DIR="$HOME/.claude/auto-approve"
-RULES_FILE="$BASE_DIR/data/learned-rules.json"
-LOG_FILE="$BASE_DIR/data/approval-log.jsonl"
+BASE_DIR="${AUTO_APPROVE_DIR:-$HOME/.claude/auto-approve}"
+RULES_FILE="${AUTO_APPROVE_RULES_FILE:-$BASE_DIR/data/learned-rules.json}"
+LOG_FILE="${AUTO_APPROVE_LOG_FILE:-$BASE_DIR/data/approval-log.jsonl}"
+
+# 寻找有效 jq
+if /usr/bin/jq --version &>/dev/null; then
+  JQ="/usr/bin/jq"
+elif command -v jq &>/dev/null; then
+  JQ="jq"
+else
+  echo '{}'
+  exit 0
+fi
 
 # 读取 stdin
 INPUT=$(cat)
@@ -18,7 +28,7 @@ if [ ! -f "$RULES_FILE" ]; then
 fi
 
 # 提取 tool_name
-TOOL_NAME=$(echo "$INPUT" | jq -r '.tool_name // empty')
+TOOL_NAME=$(echo "$INPUT" | $JQ -r '.tool_name // empty')
 
 if [ -z "$TOOL_NAME" ]; then
   echo '{}'
@@ -28,22 +38,22 @@ fi
 # 根据工具类型提取标识符
 case "$TOOL_NAME" in
   Bash)
-    IDENTIFIER=$(echo "$INPUT" | jq -r '.tool_input.command // empty')
+    IDENTIFIER=$(echo "$INPUT" | $JQ -r '.tool_input.command // empty')
     ;;
   Edit)
-    IDENTIFIER=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty')
+    IDENTIFIER=$(echo "$INPUT" | $JQ -r '.tool_input.file_path // empty')
     ;;
   Write)
-    IDENTIFIER=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty')
+    IDENTIFIER=$(echo "$INPUT" | $JQ -r '.tool_input.file_path // empty')
     ;;
   Read)
-    IDENTIFIER=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty')
+    IDENTIFIER=$(echo "$INPUT" | $JQ -r '.tool_input.file_path // empty')
     ;;
   Glob)
-    IDENTIFIER=$(echo "$INPUT" | jq -r '.tool_input.pattern // empty')
+    IDENTIFIER=$(echo "$INPUT" | $JQ -r '.tool_input.pattern // empty')
     ;;
   Grep)
-    IDENTIFIER=$(echo "$INPUT" | jq -r '.tool_input.pattern // empty')
+    IDENTIFIER=$(echo "$INPUT" | $JQ -r '.tool_input.pattern // empty')
     ;;
   *)
     echo '{}'
@@ -57,7 +67,7 @@ if [ -z "$IDENTIFIER" ]; then
 fi
 
 # 逐条匹配规则
-MATCHED=$(jq -r --arg tool "$TOOL_NAME" --arg id "$IDENTIFIER" '
+MATCHED=$($JQ -r --arg tool "$TOOL_NAME" --arg id "$IDENTIFIER" '
   .rules[] |
   select(.tool == $tool) |
   .regex as $re |
@@ -69,7 +79,7 @@ if [ -n "$MATCHED" ]; then
   # 追加 [AUTO] 标记到审计日志
   mkdir -p "$(dirname "$LOG_FILE")"
   TS=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-  jq -n -c \
+  $JQ -n -c \
     --arg ts "$TS" \
     --arg tool "$TOOL_NAME" \
     --arg input "$IDENTIFIER" \

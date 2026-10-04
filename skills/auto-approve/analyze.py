@@ -18,11 +18,14 @@ from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
 
-BASE_DIR = Path.home() / ".claude" / "auto-approve"
+BASE_DIR = Path(os.environ.get("AUTO_APPROVE_DIR", Path.home() / ".claude" / "auto-approve"))
+SCRIPT_DIR = Path(__file__).resolve().parent
 DATA_DIR = BASE_DIR / "data"
-LOG_FILE = DATA_DIR / "approval-log.jsonl"
-RULES_FILE = DATA_DIR / "learned-rules.json"
+LOG_FILE = Path(os.environ.get("AUTO_APPROVE_LOG_FILE", DATA_DIR / "approval-log.jsonl"))
+RULES_FILE = Path(os.environ.get("AUTO_APPROVE_RULES_FILE", DATA_DIR / "learned-rules.json"))
 DENY_FILE = BASE_DIR / "deny-patterns.json"
+if not DENY_FILE.exists() and (SCRIPT_DIR / "deny-patterns.json").exists():
+    DENY_FILE = SCRIPT_DIR / "deny-patterns.json"
 
 # 阈值
 MIN_COUNT = 3   # 最少出现次数

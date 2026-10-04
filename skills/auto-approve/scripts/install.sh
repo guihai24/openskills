@@ -5,14 +5,18 @@
 set -euo pipefail
 
 SKILL_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-TARGET_DIR="$HOME/.claude/auto-approve"
-SETTINGS_FILE="$HOME/.claude/settings.json"
+TARGET_DIR="${AUTO_APPROVE_DIR:-$HOME/.claude/auto-approve}"
+SETTINGS_FILE="${CLAUDE_SETTINGS_FILE:-$HOME/.claude/settings.json}"
 
 echo "=== auto-approve 安装 ==="
 echo ""
 
-# 检查依赖
-if ! command -v jq &>/dev/null; then
+# 检查依赖 (优先可用 jq)
+if /usr/bin/jq --version &>/dev/null; then
+  JQ="/usr/bin/jq"
+elif command -v jq &>/dev/null; then
+  JQ="jq"
+else
   echo "错误: 需要 jq。请先安装: brew install jq"
   exit 1
 fi
@@ -39,33 +43,31 @@ echo "文件已复制到 $TARGET_DIR"
 
 # 注册 hooks 到 settings.json
 if [ ! -f "$SETTINGS_FILE" ]; then
+  mkdir -p "$(dirname "$SETTINGS_FILE")"
   echo '{}' > "$SETTINGS_FILE"
 fi
 
-# 检查是否已注册
-if jq -e '.hooks.PreToolUse' "$SETTINGS_FILE" &>/dev/null; then
-  echo "注意: settings.json 已有 PreToolUse hooks，请手动检查是否需要合并。"
-else
-  # 添加 hooks
-  TMP=$(mktemp)
-  jq '.hooks = {
-    "PreToolUse": [{
-      "hooks": [{
-        "type": "command",
-        "command": "bash $HOME/.claude/auto-approve/hooks/pre-tool-use.sh",
-        "timeout": 5000
-      }]
-    }],
-    "PostToolUse": [{
-      "hooks": [{
-        "type": "command",
-        "command": "bash $HOME/.claude/auto-approve/hooks/post-tool-use.sh",
-        "timeout": 5000
-      }]
-    }]
-  }' "$SETTINGS_FILE" > "$TMP" && mv "$TMP" "$SETTINGS_FILE"
-  echo "已注册 hooks 到 $SETTINGS_FILE"
-fi
+# 自动备份配置
+BACKUP_FILE="${SETTINGS_FILE}.bak.$(date +%Y%m%d%H%M%S)_$$"
+cp "$SETTINGS_FILE" "$BACKUP_FILE"
+echo "已备份原配置至 $BACKUP_FILE"
+
+# 幂等且非破坏性注册 hooks（保留用户原有其他 hooks 与配置）
+PRE_HOOK="{\"hooks\":[{\"type\":\"command\",\"command\":\"bash $TARGET_DIR/hooks/pre-tool-use.sh\",\"timeout\":5000}]}"
+POST_HOOK="{\"hooks\":[{\"type\":\"command\",\"command\":\"bash $TARGET_DIR/hooks/post-tool-use.sh\",\"timeout\":5000}]}"
+
+TMP=$(mktemp)
+$JQ \
+  --argjson pre "$PRE_HOOK" \
+  --argjson post "$POST_HOOK" '
+  .hooks = (.hooks // {}) |
+  .hooks.PreToolUse = (.hooks.PreToolUse // []) |
+  (if (.hooks.PreToolUse | any([.. | strings] | any(contains("hooks/pre-tool-use.sh")))) then . else .hooks.PreToolUse += [$pre] end) |
+  .hooks.PostToolUse = (.hooks.PostToolUse // []) |
+  (if (.hooks.PostToolUse | any([.. | strings] | any(contains("hooks/post-tool-use.sh")))) then . else .hooks.PostToolUse += [$post] end)
+' "$SETTINGS_FILE" > "$TMP" && mv "$TMP" "$SETTINGS_FILE"
+
+echo "已安全注册 hooks 到 $SETTINGS_FILE"
 
 echo ""
 echo "安装完成！请重启 Claude Code 使 hooks 生效。"
